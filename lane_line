@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# # Q1:
+
+# In[ ]:
+
+
+import cv2
+def funcCan(thresh1=0):
+    thresh1 = cv2.getTrackbarPos('thresh1', 'canny')
+    thresh2 = cv2.getTrackbarPos('thresh2', 'canny')
+    edge = cv2.Canny(img, thresh1, thresh2)
+    cv2.imshow('canny', edge)
+if __name__== '__main__':
+    original=cv2.imread(r"C:\Users\Alaa\Desktop\solidWhiteCurve.jpg",1)
+    img=original.copy()
+    img=cv2.GaussianBlur(img,(5,5),0)
+    cv2.namedWindow('canny')
+    thresh1=100
+    thresh2=1
+    cv2.createTrackbar('thresh1','canny',thresh1,255,funcCan)
+    cv2.createTrackbar('thresh2','canny',thresh2,255,funcCan)
+    funcCan(0)
+    cv2.imshow('Frame',original)
+    cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+# # Q2:
+
+# In[ ]:
+
+
+get_ipython().run_line_magic('run', 'helpers.py')
+CANNY_THRESHOLD_1 = 70  
+CANNY_THRESHOLD_2 = 100 
+def canny_edges(gray):
+    kernel_size = 5 
+    blur_gray= cv2.GaussianBlur(gray, (kernel_size, kernel_size), 0)
+
+    edges = cv2.Canny(blur_gray, CANNY_THRESHOLD_1, CANNY_THRESHOLD_2)
+    return(edges)
+
+
+def nothing(x):
+    pass
+cv2.namedWindow("m")
+cv2.createTrackbar("MIN_VOTES","m",10,50,nothing)
+cv2.createTrackbar("MIN_LINE_LEN","m",1,20,nothing)
+cv2.createTrackbar("MAX_LINE_GAP","m",1,100,nothing)
+
+
+
+while True:
+    
+    RHO = 1                
+    THETA = np.pi/180       
+    MIN_VOTES = cv2.getTrackbarPos("MIN_VOTES","m")         
+    MIN_LINE_LEN = cv2.getTrackbarPos("MIN_LINE_LEN","m") 
+    MAX_LINE_GAP = cv2.getTrackbarPos("MAX_LINE_GAP","m") 
+
+    def hough_lines(img):
+        lines = cv2.HoughLinesP(img, RHO, THETA, MIN_VOTES, np.array([]), minLineLength=MIN_LINE_LEN, maxLineGap=MAX_LINE_GAP)
+        return lines
+
+
+    gray_img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+
+    edges_img = canny_edges(gray_img)
+
+
+    ROI_edges_img = helpers_masked_edges(edges_img)
+    lines = hough_lines(ROI_edges_img)
+    hough_lines_image = helpers_draw_lines(lines, ROI_edges_img)
+
+
+    lanes = helpers_formulate_lanes(lines, ROI_edges_img)
+    lanes_image = helpers_draw_lines(lanes, ROI_edges_img)
+    final_image = cv2.addWeighted(image, 0.8, lanes_image, 1, 0) 
+    cv2.imshow("Image",final_image)
+    k=cv2.waitKey(1)
+    if k==ord('q'):
+        break
+cv2.destroyAllWindows()
+
